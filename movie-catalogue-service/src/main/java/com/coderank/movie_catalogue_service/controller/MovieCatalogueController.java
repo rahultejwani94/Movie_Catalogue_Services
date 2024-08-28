@@ -30,7 +30,7 @@ public class MovieCatalogueController {
 	public List<CatalogueItem> getMovieCatalogue(@PathVariable String userId){
 		// get the movie ids and ratings from ratings-data-service
 		
-		UserRatingItem userRatingItem = restTemplate.getForObject("http://localhost:8082/ratings-data/users/" + userId, UserRatingItem.class);
+		UserRatingItem userRatingItem = restTemplate.getForObject("http://ratings-data-service/ratings-data/users/" + userId, UserRatingItem.class);
 				
 		// call movie-info-service for each movieId
 		List<CatalogueItem> catalogueItemList = new ArrayList<>();
@@ -38,17 +38,17 @@ public class MovieCatalogueController {
 		userRatingItem.ratingItems().stream().forEach(rating -> {
 			
 			// calling movie-info api using RestTemplate
-//			MovieItem movieItem = restTemplate.getForObject("http://localhost:8081/movie-info/" + rating.movieId(), MovieItem.class);
+			MovieItem movieItem = restTemplate.getForObject("http://movie-info-service/movie-info/" + rating.movieId(), MovieItem.class);
 			
 			// calling movie-info api using WebClient
-			MovieItem movieItem = webClientBuilder.build()
-				.get()
-				.uri("http://localhost:8081/movie-info/" + rating.movieId())
-				.retrieve()
-				// mono means its like a container that we have initiated the call now whenever the data will arrive it will inform (asynchronous)
-				.bodyToMono(MovieItem.class)
-				// block is used to do the api call in synchronous manner, so it will wait till the response comes back
-				.block();
+//			MovieItem movieItem = webClientBuilder.build()
+//				.get()
+//				.uri("http://localhost:8081/movie-info/" + rating.movieId())
+//				.retrieve()
+//				// mono means its like a container that we have initiated the call now whenever the data will arrive it will inform (asynchronous)
+//				.bodyToMono(MovieItem.class)
+//				// block is used to do the api call in synchronous manner, so it will wait till the response comes back
+//				.block();
 					
 			
 			catalogueItemList.add(new CatalogueItem(movieItem.name(), "Desc", rating.rating()));			 
