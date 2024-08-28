@@ -2,8 +2,6 @@ package com.coderank.movie_catalogue_service.controller;
 
 import java.util.ArrayList;
 
-import java.util.Arrays;
-
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,7 +14,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 import com.coderank.movie_catalogue_service.dto.CatalogueItem;
 import com.coderank.movie_catalogue_service.dto.MovieItem;
-import com.coderank.movie_catalogue_service.dto.RatingItem;
+import com.coderank.movie_catalogue_service.dto.UserRatingItem;
 
 @RestController
 @RequestMapping("/movie-catalogue")
@@ -26,31 +24,24 @@ public class MovieCatalogueController {
 	private RestTemplate restTemplate;
 	
 	@Autowired
-	private WebClient webClient;
+	private WebClient.Builder webClientBuilder;
 	
 	@GetMapping("/{userId}")
-	public List<CatalogueItem> getMovieCatalogue(@PathVariable("userId") String userId){
+	public List<CatalogueItem> getMovieCatalogue(@PathVariable String userId){
 		// get the movie ids and ratings from ratings-data-service
 		
-		
-		// for now we are hardcoding the response from ratings-data-service
-		
-		List<RatingItem> ratings = Arrays.asList(
-				new RatingItem("1",5),
-				new RatingItem("2", 8),
-				new RatingItem("3", 10)
-			);
-			
+		UserRatingItem userRatingItem = restTemplate.getForObject("http://localhost:8082/ratings-data/users/" + userId, UserRatingItem.class);
+				
 		// call movie-info-service for each movieId
 		List<CatalogueItem> catalogueItemList = new ArrayList<>();
 		
-		ratings.stream().forEach(rating -> {
+		userRatingItem.ratingItems().stream().forEach(rating -> {
 			
 			// calling movie-info api using RestTemplate
 //			MovieItem movieItem = restTemplate.getForObject("http://localhost:8081/movie-info/" + rating.movieId(), MovieItem.class);
 			
 			// calling movie-info api using WebClient
-			MovieItem movieItem = webClient
+			MovieItem movieItem = webClientBuilder.build()
 				.get()
 				.uri("http://localhost:8081/movie-info/" + rating.movieId())
 				.retrieve()
